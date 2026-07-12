@@ -90,13 +90,14 @@ body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSys
 /* Table */
 .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
 .filters input, .filters select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; background: var(--card); }
-.msel { position: relative; min-width: 140px; }
-.msel-btn { width: 100%; padding: 8px 28px 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: .9rem; background: var(--card); text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
+.filter-hint { color: var(--muted); font-size: .8rem; margin: 0 0 10px; line-height: 1.5; }
+.msel { position: relative; min-width: 140px; flex-shrink: 0; }
+.msel-btn { width: 100%; padding: 8px 28px 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: .9rem; background: var(--card); text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .msel-btn::after { content: '▾'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 .msel-panel { display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 200; min-width: 180px; max-height: 280px; overflow: auto; background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); padding: 8px 0; }
 .msel.open .msel-panel { display: block; }
 .msel-panel label { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: .88rem; cursor: pointer; }
-.msel-panel label:hover { background: #eef2ff; }
+.msel-panel label:hover { background: #ecfdf5; }
 .msel-panel input { margin: 0; }
 .msel-actions { display: flex; gap: 8px; padding: 6px 12px 4px; border-top: 1px solid var(--border); margin-top: 4px; }
 .msel-actions button { flex: 1; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: #f8fafc; font-size: .78rem; cursor: pointer; }
@@ -268,7 +269,7 @@ tr.hidden { display: none; }
 <div class="container container--wide">
   <div class="card">
     <h2>全部住宅楼盘</h2>
-    <p style="color:var(--muted);font-size:.85rem;margin-bottom:10px;">仅住宅——已排除村屋、工商铺、工业、土地及车位。区域、地区支持多选（不选 = 全部）。楼龄带 <strong>*</strong> 表示经网络交叉验证后仍存疑；无数据则显示 —。选用楼龄筛选时，未知或存疑楼龄的楼盘不会出现在结果中。</p>
+    <p class="filter-hint">区域、地区支持多选（不选 = 全部）。仅住宅——已排除村屋、工商铺、工业、土地及车位。楼龄带 <strong>*</strong> 表示经网络交叉验证后仍存疑；无数据则显示 —。选用楼龄筛选时，未知或存疑楼龄的楼盘不会出现在结果中。</p>
     <div class="filters">
       <input type="text" id="searchInput" placeholder="搜索屋苑、地区…" oninput="filterTable()">
       <div class="msel" id="regionFilterMsel">
