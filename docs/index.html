@@ -88,12 +88,37 @@ body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSys
 .chart-section-title { font-size: .95rem; font-weight: 600; color: var(--text); margin: 8px 0 12px; }
 
 /* Table */
-.filter-toolbar { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; padding: 14px 16px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 12px; }
-.filter-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 10px 12px; align-items: end; }
-.filter-group { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.filter-toolbar { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; padding: 16px; background: #eef2ff; border: 1px solid var(--border); border-radius: 12px; }
+.filter-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.filter-row--controls { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .filter-group--wide { grid-column: 1 / -1; }
-.filter-label { font-size: .68rem; font-weight: 600; color: var(--muted); letter-spacing: .02em; line-height: 1.2; white-space: nowrap; }
-.filter-group input[type="text"], .filter-group input[type="number"], .filter-group select { width: 100%; min-height: 38px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: .875rem; background: var(--card); color: var(--text); }
+.filter-label { font-size: .68rem; font-weight: 600; color: var(--muted); letter-spacing: .02em; line-height: 1; height: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.filter-group input[type="text"],
+.filter-group input[type="number"],
+.filter-group select,
+.msel-btn {
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  font-size: .875rem;
+  line-height: 38px;
+  background: var(--card);
+  color: var(--text);
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.filter-group select {
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
 .filter-hint { color: var(--muted); font-size: .8rem; margin: 0 0 12px; line-height: 1.55; padding: 10px 12px; background: #eff6ff; border-left: 3px solid var(--blue); border-radius: 0 8px 8px 0; }
 .meta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .meta-chip { font-size: .72rem; background: rgba(255,255,255,.14); padding: 4px 10px; border-radius: 999px; white-space: nowrap; line-height: 1.3; }
@@ -104,8 +129,8 @@ body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSys
 .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: flex-end; }
 .filters input, .filters select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: .875rem; background: var(--card); min-height: 38px; }
 .msel { position: relative; width: 100%; min-width: 0; }
-.msel-btn { width: 100%; padding: 8px 28px 8px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: .875rem; background: var(--card); text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 38px; line-height: 1.25; writing-mode: horizontal-tb; word-break: keep-all; position: relative; }
-.msel-btn::after { content: '▾'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.msel-btn { padding: 0 28px 0 12px; text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; writing-mode: horizontal-tb; word-break: keep-all; position: relative; }
+.msel-btn::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; font-size: .75rem; }
 .msel-panel { display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 200; min-width: 180px; max-height: 280px; overflow: auto; background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); padding: 8px 0; }
 .msel.open .msel-panel { display: block; }
 .msel-panel label { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: .88rem; cursor: pointer; }
@@ -161,11 +186,15 @@ tr.hidden { display: none; }
   .header-stat .num { font-size: 1.05rem; }
   .picks { grid-template-columns: 1fr; }
   .pick-card .rank { font-size: 1.5rem; }
-  .filter-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filter-row,
+  .filter-row--controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nav button { font-size: .82rem; padding: 10px 14px; }
   .chart-box .plotly-graph-div { min-height: 280px !important; }
   table { font-size: .78rem; }
   th, td { padding: 8px 10px; }
+}
+@media (min-width: 901px) and (max-width: 1400px) {
+  .filter-row--controls { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 </style>
 </head>
@@ -298,7 +327,7 @@ tr.hidden { display: none; }
           <input type="text" id="searchInput" placeholder="输入关键字…" oninput="filterTable()">
         </div>
       </div>
-      <div class="filter-row">
+      <div class="filter-row filter-row--controls">
         <div class="filter-group">
           <span class="filter-label">区域</span>
           <div class="msel" id="regionFilterMsel">
