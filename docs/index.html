@@ -30,8 +30,11 @@ html { -webkit-text-size-adjust: 100%; }
 body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: env(safe-area-inset-bottom, 0); }
 
 /* Header */
-.header { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%); color: #fff; padding: max(28px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) 20px max(32px, env(safe-area-inset-left)); }
-.header h1 { font-size: 1.6rem; font-weight: 700; }
+.header { position: relative; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%); color: #fff; padding: max(28px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) 20px max(32px, env(safe-area-inset-left)); }
+.header h1 { font-size: 1.6rem; font-weight: 700; padding-right: 168px; }
+.lang-switch { position: absolute; top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); display: inline-flex; padding: 4px; gap: 2px; border-radius: 999px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.55); box-shadow: 0 6px 18px rgba(0,0,0,.22); z-index: 20; }
+.lang-switch button { border: 0; background: transparent; color: #fff; font-weight: 800; font-size: .92rem; letter-spacing: .02em; padding: 8px 16px; min-width: 68px; border-radius: 999px; cursor: pointer; }
+.lang-switch button.active { background: #fff; color: #312e81; }
 .header .meta { opacity: .85; font-size: .85rem; margin-top: 4px; }
 .header-stats { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
 .header-stat { background: rgba(255,255,255,.12); border-radius: 10px; padding: 10px 18px; backdrop-filter: blur(4px); }
@@ -203,6 +206,10 @@ tr.hidden { display: none; }
 <div id="loading">正在加载物业数据…</div>
 
 <div class="header">
+  <div class="lang-switch" role="group" aria-label="Language">
+    <button type="button" data-set-lang="zh" onclick="setDashLang('zh')">中文</button>
+    <button type="button" data-set-lang="en" onclick="setDashLang('en')">EN</button>
+  </div>
   <h1>Cheap_house — 香港物业投资报告</h1>
   <div class="meta-chips">
     <span class="meta-chip">2026-09-19 17:23</span>
@@ -574,6 +581,7 @@ tr.hidden { display: none; }
 </div>
 </div>
 
+<script src="lang.js"></script>
 <script>
 let DATA = [];
 let PICKS = [];
@@ -600,14 +608,14 @@ function renderPicks() {
   const picks = PICKS.filter(p => ageMatches(p.building_age, filter, p.building_age_uncertain)).slice(0, 5);
   const container = document.getElementById('picksContainer');
   if (!picks.length) {
-    container.innerHTML = '<p style="color:var(--muted);padding:12px 0;">没有符合该楼龄筛选的精选推荐。</p>';
+    container.innerHTML = '<p style="color:var(--muted);padding:12px 0;">' + (window.DASH_LANG === 'en' ? 'No picks match this age filter.' : '没有符合该楼龄筛选的精选推荐。') + '</p>';
     return;
   }
   container.innerHTML = picks.map((p, i) => `
     <div class="pick-card">
       <div class="rank">#${i + 1}</div>
       <div class="estate">${escapeHtml(estateLabel(p.estate_zh, p.estate_display || p.estate))}</div>
-      <div class="loc">${escapeHtml(districtLabel(p.district_zh, p.district_display || p.district))} · ${escapeHtml(p.region_zh || p.region)} <span class="grade-badge grade-${escapeHtml(p.grade)}">${escapeHtml(p.grade)} — ${escapeHtml(p.grade_label)}</span></div>
+      <div class="loc">${escapeHtml(window.DASH_LANG === 'en' ? (p.district || '') : districtLabel(p.district_zh, p.district_display || p.district))} · ${escapeHtml(window.DASH_LANG === 'en' ? (p.region || '') : (p.region_zh || p.region))} <span class="grade-badge grade-${escapeHtml(p.grade)}">${escapeHtml(p.grade)}</span></div>
       <div class="metrics">
         <div><div class="m-label">售价</div><div class="m-val">${escapeHtml(p.price_fmt)}</div></div>
         <div><div class="m-label">楼龄</div><div class="m-val">${escapeHtml(ageLabel(p.building_age, p.building_age_uncertain))}</div></div>
@@ -620,6 +628,7 @@ function renderPicks() {
         ${safeUrl(p.url) ? `<div><div class="m-label">链接</div><div class="m-val"><a class="link-btn" href="${escapeHtml(safeUrl(p.url))}" target="_blank" rel="noopener">${escapeHtml(p.source_label || sourceLabel(p.source, p.url))}</a></div></div>` : ''}
       </div>
     </div>`).join('');
+  if (window.applyPageLang) window.applyPageLang();
 }
 
 function resizeChartsInSection(sectionId) {
@@ -667,11 +676,11 @@ function updateMselLabel(id) {
   const vals = getMselValues(id);
   const btn = document.getElementById(btnId);
   if (!vals.length) {
-    btn.textContent = defaultLabel;
+    btn.textContent = window.t ? window.t(defaultLabel) : defaultLabel;
     return;
   }
   if (id === 'regionFilterMsel') {
-    const labels = vals.map(v => REGION_LABELS[v] || v);
+    const labels = vals.map(v => window.DASH_LANG === 'en' ? v : (REGION_LABELS[v] || v));
     btn.textContent = labels.length <= 2 ? labels.join('、') : labels.slice(0, 2).join('、') + ' +' + (labels.length - 2);
     return;
   }
@@ -689,7 +698,7 @@ function populateDistricts() {
   DATA.forEach(r => {
     if (regions.length && !regions.includes(r.region)) return;
     const key = districtKey(r);
-    if (key) map.set(key, key);
+    if (key) map.set(key, window.DASH_LANG === 'en' ? (r.district || key) : key);
   });
   const entries = [...map.entries()].sort((a, b) => {
     const ra = DATA.find(r => districtKey(r) === a[0])?.region || '';
@@ -754,20 +763,23 @@ function sourceLabel(src, url) {
 
 function ageLabel(age, uncertain) {
   if (age == null || age === '') return '—';
-  return Math.round(age) + '年' + (uncertain ? '*' : '');
+  const unit = window.DASH_LANG === 'en' ? ' yrs' : '年';
+  return Math.round(age) + unit + (uncertain ? '*' : '');
 }
 
 function estateLabel(zh, en) {
   const z = (zh || '').trim();
-  if (z && /[\u4e00-\u9fff]/.test(z)) return z;
   const e = (en || '').trim();
+  if (window.DASH_LANG === 'en') return (/[\u4e00-\u9fff]/.test(e) ? (z && !/[\u4e00-\u9fff]/.test(z) ? z : e) : (e || z)) || '—';
+  if (z && /[\u4e00-\u9fff]/.test(z)) return z;
   return e || z || '—';
 }
 
 function districtLabel(zh, en) {
   const z = (zh || '').trim();
-  if (z && /[\u4e00-\u9fff]/.test(z)) return z;
   const e = (en || '').trim();
+  if (window.DASH_LANG === 'en') return (e && !/[\u4e00-\u9fff]/.test(e) ? e : z) || '—';
+  if (z && /[\u4e00-\u9fff]/.test(z)) return z;
   return z || e || '—';
 }
 
@@ -787,9 +799,9 @@ function renderTable(rows, appendFrom) {
   const html = slice.map(r => `<tr data-region="${escapeHtml(r.region)}" data-grade="${escapeHtml(r.investment_grade)}">
     <td class="col-center"><span class="rank-num">${r.rank}</span></td>
     <td class="col-estate">${escapeHtml(estateLabel(r.estate_zh, r.estate_display || r.estate))}</td>
-    <td class="col-center">${escapeHtml(r.housing_type || '住宅')}</td>
-    <td>${escapeHtml(districtLabel(r.district_zh, r.district_display || r.district))}</td>
-    <td class="col-center">${escapeHtml(r.region_zh || r.region)}</td>
+    <td class="col-center">${escapeHtml(window.t ? window.t(r.housing_type || '住宅') : (r.housing_type || '住宅'))}</td>
+    <td>${escapeHtml(window.DASH_LANG === 'en' ? (r.district || '') : districtLabel(r.district_zh, r.district_display || r.district))}</td>
+    <td class="col-center">${escapeHtml(window.DASH_LANG === 'en' ? (r.region || '') : (r.region_zh || r.region))}</td>
     <td class="col-num">${escapeHtml(r.price_fmt)}</td>
     <td class="col-num">${Math.round(r.sqft)}</td>
     <td class="col-center">${escapeHtml(ageLabel(r.building_age, r.building_age_uncertain))}</td>
@@ -809,9 +821,11 @@ function renderTable(rows, appendFrom) {
   if (appendFrom) tbody.insertAdjacentHTML('beforeend', html);
   else tbody.innerHTML = html;
   const shown = Math.min(visibleCount, rows.length);
-  document.getElementById('tableInfo').textContent = `显示 ${shown} / ${rows.length} 条（筛选后），数据库共 ${DATA.length} 条已分析楼盘`;
+  document.getElementById('tableInfo').textContent = window.DASH_LANG === 'en'
+    ? `Showing ${shown} / ${rows.length} after filters, ${DATA.length} analyzed`
+    : `显示 ${shown} / ${rows.length} 条（筛选后），数据库共 ${DATA.length} 条已分析楼盘`;
   const btn = document.getElementById('loadMoreBtn');
-  if (shown < rows.length) { btn.style.display = 'block'; btn.textContent = `加载更多（还剩 ${rows.length - shown} 条）`; }
+  if (shown < rows.length) { btn.style.display = 'block'; btn.textContent = window.DASH_LANG === 'en' ? `Load more (${rows.length - shown} left)` : `加载更多（还剩 ${rows.length - shown} 条）`; }
   else btn.style.display = 'none';
 }
 
@@ -843,6 +857,7 @@ function filterTable() {
   filteredRows = filtered;
   visibleCount = pageSize();
   renderTable(filteredRows);
+  if (window.applyPageLang) window.applyPageLang();
 }
 
 function sortData(arr) {

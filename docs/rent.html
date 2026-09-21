@@ -16,8 +16,11 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; }
 body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: env(safe-area-inset-bottom, 0); }
-.header { background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%); color: #fff; padding: max(28px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) 20px max(32px, env(safe-area-inset-left)); }
-.header h1 { font-size: 1.5rem; font-weight: 700; }
+.header { position: relative; background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%); color: #fff; padding: max(28px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) 20px max(32px, env(safe-area-inset-left)); }
+.header h1 { font-size: 1.5rem; font-weight: 700; padding-right: 168px; }
+.lang-switch { position: absolute; top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); display: inline-flex; padding: 4px; gap: 2px; border-radius: 999px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.55); box-shadow: 0 6px 18px rgba(0,0,0,.22); z-index: 20; }
+.lang-switch button { border: 0; background: transparent; color: #fff; font-weight: 800; font-size: .92rem; letter-spacing: .02em; padding: 8px 16px; min-width: 68px; border-radius: 999px; cursor: pointer; }
+.lang-switch button.active { background: #fff; color: #064e3b; }
 .meta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .meta-chip { font-size: .72rem; background: rgba(255,255,255,.14); padding: 4px 10px; border-radius: 999px; white-space: nowrap; line-height: 1.3; }
 .header-links { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: .82rem; }
@@ -124,6 +127,10 @@ tr:hover td { background: #f0fdf4; }
 <body>
 <div id="loading">正在加载租盘数据…</div>
 <div class="header">
+  <div class="lang-switch" role="group" aria-label="Language">
+    <button type="button" data-set-lang="zh" onclick="setDashLang('zh')">中文</button>
+    <button type="button" data-set-lang="en" onclick="setDashLang('en')">EN</button>
+  </div>
   <h1>Cheap_house — 香港租房报告</h1>
   <div class="meta-chips">
     <span class="meta-chip">2026-09-19 17:25</span>
@@ -434,6 +441,7 @@ tr:hover td { background: #f0fdf4; }
   </div>
 </div></div>
 
+<script src="lang.js"></script>
 <script>
 const DATA_VERSION = "202609191725";
 const REGION_LABELS = { 'Hong Kong Island': '港岛', 'Kowloon': '九龙', 'New Territories': '新界' };
@@ -482,12 +490,12 @@ function updateMselLabel(id) {
   const btn = document.getElementById(meta.btn);
   if (!btn) return;
   if (!vals.length) {
-    btn.textContent = meta.empty;
+    btn.textContent = window.t ? window.t(meta.empty) : meta.empty;
     return;
   }
   let labels;
-  if (id === 'regionFilterMsel') labels = vals.map(v => REGION_LABELS[v] || v);
-  else if (id === 'bedroomFilterMsel') labels = vals.map(v => BEDROOM_LABELS[v] || v);
+  if (id === 'regionFilterMsel') labels = vals.map(v => window.DASH_LANG === 'en' ? v : (REGION_LABELS[v] || v));
+  else if (id === 'bedroomFilterMsel') labels = vals.map(v => window.t ? window.t(BEDROOM_LABELS[v] || v) : (BEDROOM_LABELS[v] || v));
   else labels = vals.map(v => v);
   btn.textContent = labels.length <= 2 ? labels.join('、') : labels.slice(0, 2).join('、') + ' +' + (labels.length - 2);
 }
@@ -512,7 +520,7 @@ function populateDistricts() {
   DATA.forEach(r => {
     if (regions.length && !regions.includes(r.region)) return;
     const key = districtKey(r);
-    if (key) map.set(key, key);
+    if (key) map.set(key, window.DASH_LANG === 'en' ? (r.district || key) : key);
   });
   const entries = [...map.entries()].sort((a, b) => {
     const ra = DATA.find(r => districtKey(r) === a[0])?.region || '';
@@ -609,7 +617,8 @@ function ageMatches(age, filter, uncertain) {
 }
 function ageLabel(age, uncertain) {
   if (age == null || age === '') return '—';
-  return Math.round(age) + '年' + (uncertain ? '*' : '');
+  const unit = window.DASH_LANG === 'en' ? ' yrs' : '年';
+  return Math.round(age) + unit + (uncertain ? '*' : '');
 }
 // Tenant-friendly sort directions (asc = cheaper/smaller/newer first)
 const TENANT_SORT_DIR = {
@@ -677,8 +686,8 @@ function filterTable() {
     return (REGION_ORDER[a.region] ?? 99) - (REGION_ORDER[b.region] ?? 99);
   });
   document.getElementById('tableBody').innerHTML = rows.slice(0, 500).map(r => `<tr>
-    <td>${r.rank}</td><td>${esc(r.estate_display||r.estate)}</td><td>${esc(r.district_display||r.district)}</td>
-    <td>${esc(r.region_zh||r.region)}</td><td>${esc(r.rent_fmt)}</td><td>${esc(r.rpsf_fmt||'')}</td>
+    <td>${r.rank}</td><td>${esc(r.estate_display||r.estate)}</td><td>${esc(window.DASH_LANG === 'en' ? (r.district || '') : (r.district_display||r.district))}</td>
+    <td>${esc(window.DASH_LANG === 'en' ? (r.region || '') : (r.region_zh||r.region))}</td><td>${esc(r.rent_fmt)}</td><td>${esc(r.rpsf_fmt||'')}</td>
     <td>${r.sqft||'—'}</td><td>${r.bedrooms??'—'}</td><td>${esc(r.total_fmt||'')}</td>
     <td style="color:${(r.value_vs_district||0)>0?'#059669':'#dc2626'}">${pct(r.value_vs_district)}</td>
     <td>${esc(ageLabel(r.building_age, r.building_age_uncertain))}</td>
@@ -686,7 +695,10 @@ function filterTable() {
     <td>${(r.rent_score||0).toFixed(1)}</td>
     <td>${r.url?'<a class="link-btn" href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.source_label||sourceLabel(r.source,r.url))+'</a>':''}</td>
   </tr>`).join('');
-  document.getElementById('tableInfo').textContent = `显示 ${Math.min(500,rows.length)} / ${rows.length} 条（共 ${DATA.length} 个租盘）`;
+  document.getElementById('tableInfo').textContent = window.DASH_LANG === 'en'
+    ? `Showing ${Math.min(500, rows.length)} / ${rows.length} (${DATA.length} rentals)`
+    : `显示 ${Math.min(500,rows.length)} / ${rows.length} 条（共 ${DATA.length} 个租盘）`;
+  if (window.applyPageLang) window.applyPageLang();
 }
 async function boot() {
   try {
