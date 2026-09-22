@@ -791,6 +791,9 @@ function estateLabel(zh, en) {
   const PLACE_WORD = /\b(Phase|Tower|Block|Flat|Floor|Zone|No\.?|Road|Street|Avenue|Drive|Terrace|Garden|Court|House|Centre|Center|Villa|Mansion|Apartment|Residence|Plaza|Heights?|Park|Hill|Bay|View|Place|Square|Building|Estate|Lane|Circus|Circle|Junction)\b/i;
   const isWeak = (s) => {
     if (!s || /[\u4e00-\u9fff]/.test(s)) return true;
+    if (/^[A-Za-z]$/.test(s)) return true;
+    if (((s.match(/[A-Za-z]/g) || []).length < 3) && !PLACE_WORD.test(s)) return true;
+    if (/资讯平台|資訊平台|信息平台|搵楼|搵樓|找楼|找樓/.test(s)) return true;
     if (/^\(?\s*Phase\b/i.test(s) && !/[A-Za-z]{4,}/.test(s.replace(/^\(?\s*Phase\s+[\w\-]+\s*\)?/i, ''))) return true;
     if (/^(?:(?:The|No\.?)\s+)?(?:[A-Za-z][A-Za-z'.]*\s+){0,5}(?:Road|Street)(?:\s+No\.?\s*\d+[A-Za-z]*)?$/i.test(s)) return true;
     if (/^Sun Chuen$/i.test(s)) return true;
@@ -832,14 +835,16 @@ function estateLabel(zh, en) {
     return out;
   };
   if (window.DASH_LANG === 'en') {
-    if (e && !isWeak(e)) return e;
+    if (e && !isWeak(e) && !/[\u4e00-\u9fff]/.test(e)) return e;
     const fromZ = /[\u4e00-\u9fff]/.test(z) ? expand(z) : '';
-    if (fromZ && !isWeak(fromZ)) return fromZ;
+    if (fromZ && !isWeak(fromZ) && !/[\u4e00-\u9fff]/.test(fromZ)) return fromZ;
     const fromE = expand(e);
-    if (fromE && !isWeak(fromE)) return fromE;
-    if (z && !isWeak(z)) return z;
-    return z || e || '—';
+    if (fromE && !isWeak(fromE) && !/[\u4e00-\u9fff]/.test(fromE)) return fromE;
+    // English UI: never fall back to Chinese scraps / portal junk.
+    return '—';
   }
+  // Chinese UI: hide portal junk brands.
+  if (/资讯平台|資訊平台|信息平台|搵楼|搵樓/.test(z + e)) return '—';
   if (z && /[\u4e00-\u9fff]/.test(z)) return z;
   return e || z || '—';
 }
