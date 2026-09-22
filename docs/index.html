@@ -613,7 +613,7 @@ function renderPicks() {
   container.innerHTML = picks.map((p, i) => `
     <div class="pick-card">
       <div class="rank">#${i + 1}</div>
-      <div class="estate">${escapeHtml(estateLabel(p.estate_zh || p.estate_display || p.estate, p.estate_en || ''))}</div>
+      <div class="estate">${escapeHtml(estateLabel(p.estate_display || p.estate_zh || p.estate, p.estate_en || ''))}</div>
       <div class="loc">${escapeHtml(window.DASH_LANG === 'en' ? (p.district || '') : districtLabel(p.district_zh, p.district_display || p.district))} · ${escapeHtml(window.DASH_LANG === 'en' ? (p.region || '') : (p.region_zh || p.region))} <span class="grade-badge grade-${escapeHtml(p.grade)}">${escapeHtml(p.grade)}</span></div>
       <div class="metrics">
         <div><div class="m-label">售价</div><div class="m-val">${escapeHtml(p.price_fmt)}</div></div>
@@ -791,6 +791,9 @@ function estateLabel(zh, en) {
   const PLACE_WORD = /\b(Phase|Tower|Block|Flat|Floor|Zone|No\.?|Road|Street|Avenue|Drive|Terrace|Garden|Court|House|Centre|Center|Villa|Mansion|Apartment|Residence|Plaza|Heights?|Park|Hill|Bay|View|Place|Square|Building|Estate|Lane|Circus|Circle|Junction)\b/i;
   const isWeak = (s) => {
     if (!s || /[\u4e00-\u9fff]/.test(s)) return true;
+    if (/^\(?\s*Phase\b/i.test(s) && !/[A-Za-z]{4,}/.test(s.replace(/^\(?\s*Phase\s+[\w\-]+\s*\)?/i, ''))) return true;
+    if (/^(?:(?:The|No\.?)\s+)?(?:[A-Za-z][A-Za-z'.]*\s+){0,5}(?:Road|Street)(?:\s+No\.?\s*\d+[A-Za-z]*)?$/i.test(s)) return true;
+    if (/^Sun Chuen$/i.test(s)) return true;
     const core = s.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim().replace(/^[·\-\s\/]+|[·\-\s\/]+$/g, '');
     if (!core) {
       const inner = (s.match(/\(([^)]+)\)/g) || []).join(' ');
@@ -829,9 +832,9 @@ function estateLabel(zh, en) {
     return out;
   };
   if (window.DASH_LANG === 'en') {
+    if (e && !isWeak(e)) return e;
     const fromZ = /[\u4e00-\u9fff]/.test(z) ? expand(z) : '';
     if (fromZ && !isWeak(fromZ)) return fromZ;
-    if (e && !isWeak(e)) return e;
     const fromE = expand(e);
     if (fromE && !isWeak(fromE)) return fromE;
     if (z && !isWeak(z)) return z;
@@ -864,7 +867,7 @@ function renderTable(rows, appendFrom) {
   const tbody = document.getElementById('tableBody');
   const html = slice.map(r => `<tr data-region="${escapeHtml(r.region)}" data-grade="${escapeHtml(r.investment_grade)}">
     <td class="col-center"><span class="rank-num">${r.rank}</span></td>
-    <td class="col-estate">${escapeHtml(estateLabel(r.estate_zh || r.estate_display || r.estate, r.estate_en || ''))}</td>
+    <td class="col-estate">${escapeHtml(estateLabel(r.estate_display || r.estate_zh || r.estate, r.estate_en || ''))}</td>
     <td class="col-center">${escapeHtml(window.t ? window.t(r.housing_type || '住宅') : (r.housing_type || '住宅'))}</td>
     <td>${escapeHtml(window.DASH_LANG === 'en' ? (r.district || '') : districtLabel(r.district_zh, r.district_display || r.district))}</td>
     <td class="col-center">${escapeHtml(window.DASH_LANG === 'en' ? (r.region || '') : (r.region_zh || r.region))}</td>
