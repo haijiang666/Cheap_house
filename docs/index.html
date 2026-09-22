@@ -614,7 +614,7 @@ function renderPicks() {
   container.innerHTML = picks.map((p, i) => `
     <div class="pick-card">
       <div class="rank">#${i + 1}</div>
-      <div class="estate">${escapeHtml(estateLabel(p.estate_zh, p.estate_display || p.estate))}</div>
+      <div class="estate">${escapeHtml(estateLabel(p.estate_zh || p.estate_display || p.estate, p.estate_en || ''))}</div>
       <div class="loc">${escapeHtml(window.DASH_LANG === 'en' ? (p.district || '') : districtLabel(p.district_zh, p.district_display || p.district))} · ${escapeHtml(window.DASH_LANG === 'en' ? (p.region || '') : (p.region_zh || p.region))} <span class="grade-badge grade-${escapeHtml(p.grade)}">${escapeHtml(p.grade)}</span></div>
       <div class="metrics">
         <div><div class="m-label">售价</div><div class="m-val">${escapeHtml(p.price_fmt)}</div></div>
@@ -770,7 +770,17 @@ function ageLabel(age, uncertain) {
 function estateLabel(zh, en) {
   const z = (zh || '').trim();
   const e = (en || '').trim();
-  if (window.DASH_LANG === 'en') return (/[\u4e00-\u9fff]/.test(e) ? (z && !/[\u4e00-\u9fff]/.test(z) ? z : e) : (e || z)) || '—';
+  const latinFallback = (s) => {
+    if (!s) return '';
+    if (!/[\u4e00-\u9fff]/.test(s)) return s;
+    const latin = s.replace(/[\u4e00-\u9fff]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/^[·\-\s\/]+|[·\-\s\/]+$/g, '');
+    return latin.length >= 2 ? latin : '';
+  };
+  if (window.DASH_LANG === 'en') {
+    if (e && !/[\u4e00-\u9fff]/.test(e)) return e;
+    if (z && !/[\u4e00-\u9fff]/.test(z)) return z;
+    return latinFallback(e) || latinFallback(z) || e || z || '—';
+  }
   if (z && /[\u4e00-\u9fff]/.test(z)) return z;
   return e || z || '—';
 }
@@ -798,7 +808,7 @@ function renderTable(rows, appendFrom) {
   const tbody = document.getElementById('tableBody');
   const html = slice.map(r => `<tr data-region="${escapeHtml(r.region)}" data-grade="${escapeHtml(r.investment_grade)}">
     <td class="col-center"><span class="rank-num">${r.rank}</span></td>
-    <td class="col-estate">${escapeHtml(estateLabel(r.estate_zh, r.estate_display || r.estate))}</td>
+    <td class="col-estate">${escapeHtml(estateLabel(r.estate_zh || r.estate_display || r.estate, r.estate_en || ''))}</td>
     <td class="col-center">${escapeHtml(window.t ? window.t(r.housing_type || '住宅') : (r.housing_type || '住宅'))}</td>
     <td>${escapeHtml(window.DASH_LANG === 'en' ? (r.district || '') : districtLabel(r.district_zh, r.district_display || r.district))}</td>
     <td class="col-center">${escapeHtml(window.DASH_LANG === 'en' ? (r.region || '') : (r.region_zh || r.region))}</td>
@@ -850,7 +860,7 @@ function filterTable() {
     if (regions.length && !regions.includes(r.region)) return false;
     if (districts.length && !districts.includes(districtKey(r))) return false;
     if (grade && r.investment_grade !== grade) return false;
-    if (q && !((r.estate || '') + (r.estate_zh || '') + (r.estate_display || '') + (r.district || '') + (r.district_zh || '') + (r.district_display || '') + (r.region || '') + (r.region_zh || '')).toLowerCase().includes(q)) return false;
+    if (q && !((r.estate || '') + (r.estate_zh || '') + (r.estate_en || '') + (r.estate_display || '') + (r.district || '') + (r.district_zh || '') + (r.district_display || '') + (r.region || '') + (r.region_zh || '')).toLowerCase().includes(q)) return false;
     return true;
   });
   sortData(filtered);

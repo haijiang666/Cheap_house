@@ -620,6 +620,46 @@ function ageLabel(age, uncertain) {
   const unit = window.DASH_LANG === 'en' ? ' yrs' : '年';
   return Math.round(age) + unit + (uncertain ? '*' : '');
 }
+function estateLabel(zh, en) {
+  const z = (zh || '').trim();
+  const e = (en || '').trim();
+  const latinFallback = (s) => {
+    if (!s) return '';
+    if (!/[\u4e00-\u9fff]/.test(s)) return s;
+    const latin = s.replace(/[\u4e00-\u9fff]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/^[·\-\s\/]+|[·\-\s\/]+$/g, '');
+    return latin.length >= 2 ? latin : '';
+  };
+  if (window.DASH_LANG === 'en') {
+    if (e && !/[\u4e00-\u9fff]/.test(e)) return e;
+    if (z && !/[\u4e00-\u9fff]/.test(z)) return z;
+    return latinFallback(e) || latinFallback(z) || e || z || '—';
+  }
+  if (z && /[\u4e00-\u9fff]/.test(z)) return z;
+  return e || z || '—';
+}
+let PICKS = [];
+function renderPicks() {
+  const container = document.getElementById('picksContainer');
+  if (!container || !PICKS.length) return;
+  const bedUnit = window.DASH_LANG === 'en' ? ' beds' : '房';
+  container.innerHTML = PICKS.slice(0, 5).map((p, i) => `
+    <div class="pick-card">
+      <div class="rank">#${i + 1}</div>
+      <div style="font-weight:700">${esc(estateLabel(p.estate_zh || p.estate_display || p.estate, p.estate_en || ''))}</div>
+      <div style="color:var(--muted);font-size:.8rem;margin:4px 0 10px">${esc(window.DASH_LANG === 'en' ? (p.district || p.district_display || '') : (p.district_display || p.district || ''))} · ${esc(window.DASH_LANG === 'en' ? (p.region || p.region_zh || '') : (p.region_zh || p.region || ''))} <span class="grade-badge grade-${esc(p.grade)}">${esc(p.grade)}</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.82rem">
+        <div><span style="color:var(--muted);font-size:.7rem">${window.DASH_LANG === 'en' ? 'Rent' : '月租'}</span><br><strong>${esc(p.rent_fmt || p.rent || '')}</strong></div>
+        <div><span style="color:var(--muted);font-size:.7rem">${window.DASH_LANG === 'en' ? 'Rent/sqft' : '呎租'}</span><br><strong>${esc(p.rpsf_fmt || p.rpsf || '')}</strong></div>
+        <div><span style="color:var(--muted);font-size:.7rem">${window.DASH_LANG === 'en' ? 'Saleable sqft' : '实用面积'}</span><br>${esc(p.sqft || '—')}${typeof p.sqft === 'number' || /^\d+$/.test(String(p.sqft||'')) ? (window.DASH_LANG === 'en' ? ' sqft' : '呎') : ''}</div>
+        <div><span style="color:var(--muted);font-size:.7rem">${window.DASH_LANG === 'en' ? 'Beds' : '房间'}</span><br>${esc(p.bedrooms ?? '—')}${bedUnit}</div>
+        <div><span style="color:var(--muted);font-size:.7rem">${window.DASH_LANG === 'en' ? 'Incl. mgmt' : '含管理费'}</span><br>${esc(p.total_fmt || p.total || '')}</div>
+        <div><span style="color:var(--muted);font-size:.7rem">${window.DASH_LANG === 'en' ? 'vs district' : '较分区'}</span><br>${esc(p.value_pct || '')}</div>
+        <div><span style="color:var(--muted);font-size:.7rem">${window.DASH_LANG === 'en' ? 'Score' : '评分'}</span><br>${esc(p.score || '')}</div>
+        ${p.url ? `<div><a class="link-btn" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.source_label || 'Link')}</a></div>` : ''}
+      </div>
+    </div>`).join('');
+  if (window.applyPageLang) window.applyPageLang();
+}
 // Tenant-friendly sort directions (asc = cheaper/smaller/newer first)
 const TENANT_SORT_DIR = {
   rent_score: 'desc',
@@ -677,7 +717,7 @@ function filterTable() {
     const area = Number(r.sqft);
     if (sqft.min != null && (!Number.isFinite(area) || area < sqft.min)) return false;
     if (sqft.max != null && (!Number.isFinite(area) || area > sqft.max)) return false;
-    if (q && !((r.estate||'')+(r.estate_zh||'')+(r.district||'')+(r.district_display||'')+(r.region_zh||'')).toLowerCase().includes(q)) return false;
+    if (q && !((r.estate||'')+(r.estate_zh||'')+(r.estate_en||'')+(r.estate_display||'')+(r.district||'')+(r.district_display||'')+(r.region||'')+(r.region_zh||'')).toLowerCase().includes(q)) return false;
     return true;
   });
   rows.sort((a, b) => {
@@ -686,7 +726,7 @@ function filterTable() {
     return (REGION_ORDER[a.region] ?? 99) - (REGION_ORDER[b.region] ?? 99);
   });
   document.getElementById('tableBody').innerHTML = rows.slice(0, 500).map(r => `<tr>
-    <td>${r.rank}</td><td>${esc(r.estate_display||r.estate)}</td><td>${esc(window.DASH_LANG === 'en' ? (r.district || '') : (r.district_display||r.district))}</td>
+    <td>${r.rank}</td><td>${esc(estateLabel(r.estate_zh||r.estate_display||r.estate, r.estate_en||''))}</td><td>${esc(window.DASH_LANG === 'en' ? (r.district || '') : (r.district_display||r.district))}</td>
     <td>${esc(window.DASH_LANG === 'en' ? (r.region || '') : (r.region_zh||r.region))}</td><td>${esc(r.rent_fmt)}</td><td>${esc(r.rpsf_fmt||'')}</td>
     <td>${r.sqft||'—'}</td><td>${r.bedrooms??'—'}</td><td>${esc(r.total_fmt||'')}</td>
     <td style="color:${(r.value_vs_district||0)>0?'#059669':'#dc2626'}">${pct(r.value_vs_district)}</td>
@@ -702,8 +742,9 @@ function filterTable() {
 }
 async function boot() {
   try {
-    await loadJson('rent_picks_data.json');
+    PICKS = await loadJson('rent_picks_data.json');
     DATA = await loadJson('rent_listings_data.json');
+    renderPicks();
     populateDistricts();
     filterTable();
     document.getElementById('loading').style.display = 'none';
