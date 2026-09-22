@@ -287,7 +287,6 @@ tr:hover td { background: #f0fdf4; }
             <div class="msel-panel" id="regionFilterPanel">
               <label><input type="checkbox" value="Hong Kong Island" onchange="onRegionChange()"> 港岛</label>
               <label><input type="checkbox" value="Kowloon" onchange="onRegionChange()"> 九龙</label>
-              <label><input type="checkbox" value="New Territories" onchange="onRegionChange()"> 新界</label>
               <div class="msel-actions">
                 <button type="button" onclick="clearMsel('regionFilterMsel'); onRegionChange()">清除</button>
               </div>
@@ -444,8 +443,8 @@ tr:hover td { background: #f0fdf4; }
 <script src="lang.js"></script>
 <script>
 const DATA_VERSION = "202609191725";
-const REGION_LABELS = { 'Hong Kong Island': '港岛', 'Kowloon': '九龙', 'New Territories': '新界' };
-const REGION_ORDER = { 'Hong Kong Island': 0, 'Kowloon': 1, 'New Territories': 2 };
+const REGION_LABELS = { 'Hong Kong Island': '港岛', 'Kowloon': '九龙' };
+const REGION_ORDER = { 'Hong Kong Island': 0, 'Kowloon': 1 };
 let DATA = [];
 function showTab(id, btn) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));

@@ -342,7 +342,6 @@ tr.hidden { display: none; }
             <div class="msel-panel" id="regionFilterPanel">
               <label><input type="checkbox" value="Hong Kong Island" onchange="onRegionChange()"> 港岛</label>
               <label><input type="checkbox" value="Kowloon" onchange="onRegionChange()"> 九龙</label>
-              <label><input type="checkbox" value="New Territories" onchange="onRegionChange()"> 新界</label>
               <div class="msel-actions">
                 <button type="button" onclick="clearMsel('regionFilterMsel'); onRegionChange()">清除</button>
               </div>
@@ -430,7 +429,7 @@ tr.hidden { display: none; }
 <div class="container">
   <div class="card">
     <h2>分区投资分析</h2>
-    <p style="color:var(--muted);font-size:.88rem;margin-bottom:14px;">按区域（港岛→九龙→新界）及中位现金回报率排序。A级占比 = 该分区强力推荐盘比例。</p>
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:14px;">按区域（港岛→九龙）及中位现金回报率排序。A级占比 = 该分区强力推荐盘比例。</p>
     <div class="table-wrap">
       <table class="dist-table">
         <thead><tr><th>区域</th><th>地区</th><th>盘数</th><th>中位售价</th><th>呎价</th><th>毛租金回报率</th><th>现金回报率</th><th>A级占比</th></tr></thead>
@@ -649,8 +648,8 @@ function showTab(id, btn) {
   requestAnimationFrame(() => resizeChartsInSection(id));
 }
 
-const REGION_LABELS = { 'Hong Kong Island': '港岛', 'Kowloon': '九龙', 'New Territories': '新界' };
-const REGION_ORDER = { 'Hong Kong Island': 0, 'Kowloon': 1, 'New Territories': 2 };
+const REGION_LABELS = { 'Hong Kong Island': '港岛', 'Kowloon': '九龙' };
+const REGION_ORDER = { 'Hong Kong Island': 0, 'Kowloon': 1 };
 
 function toggleMsel(id) {
   const el = document.getElementById(id);

@@ -176,7 +176,7 @@
     ["表示存疑；选用楼龄筛选时，未知或存疑楼龄的楼盘不会显示。", "means uncertain; those listings are hidden when an age filter is on."],
     ["区域、地区、房间数可多选（不选 = 全部）。呎租按", "Region, district and bedrooms are multi-select (none = all). Rent/sqft uses "],
     ["计算；楼龄筛选时未知/存疑楼龄不显示。月租、面积为区间筛选，可只填一侧。", ". Unknown or uncertain ages are hidden when an age filter is on. Rent and area filters can be one-sided."],
-    ["按区域（港岛→九龙→新界）及中位现金回报率排序。A级占比 = 该分区强力推荐盘比例。", "Sorted by region (Hong Kong Island → Kowloon → New Territories), then median cash-on-cash. Grade A share = share of strong buys in that district."],
+    ["按区域（港岛→九龙）及中位现金回报率排序。A级占比 = 该分区强力推荐盘比例。", "Sorted by region (Hong Kong Island → Kowloon), then median cash-on-cash. Grade A share = share of strong buys in that district."],
     ["气泡越大=该分区楼盘越多；颜色越绿=现金回报率越高", "Larger bubble = more listings; greener = higher cash-on-cash"],
     [    "以下图表基于已核实租金的楼盘。收益率轴均为百分比；售价轴为百万港元。", "Charts use listings with verified rent. Yield axes are percent; price axis is HK$ millions."],
     ["投资评级分布", "Investment grade mix"],
