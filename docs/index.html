@@ -770,16 +770,73 @@ function ageLabel(age, uncertain) {
 function estateLabel(zh, en) {
   const z = (zh || '').trim();
   const e = (en || '').trim();
-  const latinFallback = (s) => {
+  const STREET_EN = {
+    '薄扶林道': 'Pok Fu Lam Road', '百老匯街': 'Broadway', '百老汇街': 'Broadway',
+    '蘭秀道': 'Lansdowne Road', '兰秀道': 'Lansdowne Road',
+    '恆柏街': 'Hang Pak Street', '恒柏街': 'Hang Pak Street',
+    '金巴利道': 'Kimberley Road', '渣華道': 'Java Road', '渣华道': 'Java Road',
+    '羅便臣道': 'Robinson Road', '罗便臣道': 'Robinson Road',
+    '筲箕灣道': 'Shau Kei Wan Road', '筲箕湾道': 'Shau Kei Wan Road',
+    '麥當勞道': 'MacDonnell Road', '麦当劳道': 'MacDonnell Road',
+    '界限街': 'Boundary Street', '窩打老道': 'Waterloo Road', '窝打老道': 'Waterloo Road',
+    '淺水灣道': 'Repulse Bay Road', '浅水湾道': 'Repulse Bay Road',
+    '亞皆老街': 'Argyle Street', '亚皆老街': 'Argyle Street',
+    '廣播道': 'Broadcast Drive', '广播道': 'Broadcast Drive',
+    '波斯富街': 'Percival Street', '駱克道': 'Lockhart Road', '骆克道': 'Lockhart Road',
+    '大坑道': 'Tai Hang Road', '域多利道': 'Victoria Road',
+    '黃泥涌道': 'Wong Nai Chung Road', '黄泥涌道': 'Wong Nai Chung Road',
+    '牛津道': 'Oxford Road', '堅尼地道': 'Kennedy Road', '坚尼地道': 'Kennedy Road',
+    '景光街': 'King Kwong Street', '春秧街': 'Chun Yeung Street', '山村台': 'Village Terrace',
+    '天后廟道': 'Tin Hau Temple Road', '天后庙道': 'Tin Hau Temple Road', '布力架街': 'Bulkeley Street'
+  };
+  const PLACE_WORD = /\b(Phase|Tower|Block|Flat|Floor|Zone|No\.?|Road|Street|Avenue|Drive|Terrace|Garden|Court|House|Centre|Center|Villa|Mansion|Apartment|Residence|Plaza|Heights?|Park|Hill|Bay|View|Place|Square|Building|Estate|Lane|Circus|Circle|Junction)\b/i;
+  const isWeak = (s) => {
+    if (!s || /[\u4e00-\u9fff]/.test(s)) return true;
+    const core = s.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim().replace(/^[·\-\s\/]+|[·\-\s\/]+$/g, '');
+    if (!core) {
+      const inner = (s.match(/\(([^)]+)\)/g) || []).join(' ');
+      return (inner.match(/[A-Za-z]/g) || []).length < 3;
+    }
+    if (PLACE_WORD.test(core) || /[A-Za-z]{3,}/.test(core)) return false;
+    const letters = (core.match(/[A-Za-z]/g) || []).length;
+    const digits = (core.match(/\d/g) || []).length;
+    return digits >= 1 && letters < 4;
+  };
+  const expand = (s) => {
     if (!s) return '';
-    if (!/[\u4e00-\u9fff]/.test(s)) return s;
-    const latin = s.replace(/[\u4e00-\u9fff]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/^[·\-\s\/]+|[·\-\s\/]+$/g, '');
-    return latin.length >= 2 ? latin : '';
+    const parens = (s.match(/\(([^)]+)\)/g) || [])
+      .map(p => p.slice(1, -1).trim())
+      .filter(p => p && !/[\u4e00-\u9fff]/.test(p) && (p.match(/[A-Za-z]/g) || []).length >= 3);
+    let out = s;
+    Object.keys(STREET_EN).sort((a, b) => b.length - a.length).forEach(zhStreet => {
+      if (out.includes(zhStreet)) out = out.split(zhStreet).join(' ' + STREET_EN[zhStreet] + ' ');
+    });
+    out = out.replace(/(\d+)\s*期/g, 'Phase $1')
+      .replace(/(\d+[A-Za-z]?)\s*座/g, 'Tower $1')
+      .replace(/(\d+)\s*號/g, 'No. $1')
+      .replace(/(\d+)\s*号/g, 'No. $1')
+      .replace(/[\u4e00-\u9fff]+/g, ' ')
+      .replace(/\(\s*\)/g, ' ')
+      .replace(/[．·]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim().replace(/^[·\-\s\/.]+|[·\-\s\/.]+$/g, '');
+    const structuralOnly = /^(?:Phase\s+\w+\s+)?(?:Tower|Block)\s+[\w\-]+$|^Phase\s+\w+$/i.test(out);
+    const meaningfulCjk = (s.match(/[\u4e00-\u9fff]+/g) || []).filter(w => !/^[期座號号第]+$/.test(w));
+    if (structuralOnly && meaningfulCjk.length) return parens[0] || '';
+    if (isWeak(out)) return parens[0] || '';
+    for (const p of parens) {
+      if (!out.toLowerCase().includes(p.toLowerCase())) { out = out + ' (' + p + ')'; break; }
+    }
+    return out;
   };
   if (window.DASH_LANG === 'en') {
-    if (e && !/[\u4e00-\u9fff]/.test(e)) return e;
-    if (z && !/[\u4e00-\u9fff]/.test(z)) return z;
-    return latinFallback(e) || latinFallback(z) || e || z || '—';
+    const fromZ = /[\u4e00-\u9fff]/.test(z) ? expand(z) : '';
+    if (fromZ && !isWeak(fromZ)) return fromZ;
+    if (e && !isWeak(e)) return e;
+    const fromE = expand(e);
+    if (fromE && !isWeak(fromE)) return fromE;
+    if (z && !isWeak(z)) return z;
+    return z || e || '—';
   }
   if (z && /[\u4e00-\u9fff]/.test(z)) return z;
   return e || z || '—';
