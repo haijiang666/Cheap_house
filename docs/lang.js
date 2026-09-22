@@ -192,8 +192,10 @@
     ["各区中位呎租", "Median rent/sqft by district"],
     ["面积 vs 月租", "Area vs rent"],
     [    "房间数 vs 中位月租", "Bedrooms vs median rent"],
-    ["楼龄 vs 每呎租金（港岛 / 九龙 / 新界）", "Age vs rent/sqft (Hong Kong Island / Kowloon / New Territories)"],
-    ["楼龄 vs 每呎售价（港岛 / 九龙 / 新界）", "Age vs price/sqft (Hong Kong Island / Kowloon / New Territories)"],
+    ["楼龄 vs 每呎租金（港岛 / 九龙）", "Age vs rent/sqft (Hong Kong Island / Kowloon)"],
+    ["楼龄 vs 每呎售价（港岛 / 九龙）", "Age vs price/sqft (Hong Kong Island / Kowloon)"],
+    ["楼龄 vs 每呎租金（港岛 / 九龙 / 新界）", "Age vs rent/sqft (Hong Kong Island / Kowloon)"],
+    ["楼龄 vs 每呎售价（港岛 / 九龙 / 新界）", "Age vs price/sqft (Hong Kong Island / Kowloon)"],
     ["按租值评分排序。评级 A = 呎租明显低于分区/屋苑中位。", "Sorted by value score. Grade A means rent/sqft is clearly below the district or estate median."],
   ];
 
