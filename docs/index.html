@@ -840,10 +840,9 @@ function estateLabel(zh, en) {
     if (fromZ && !isWeak(fromZ) && !/[\u4e00-\u9fff]/.test(fromZ)) return fromZ;
     const fromE = expand(e);
     if (fromE && !isWeak(fromE) && !/[\u4e00-\u9fff]/.test(fromE)) return fromE;
-    // English UI: never fall back to Chinese scraps / portal junk.
     return '—';
   }
-  // Chinese UI: hide portal junk brands.
+  // Chinese UI: hide portal junk brands; prefer Chinese estate name.
   if (/资讯平台|資訊平台|信息平台|搵楼|搵樓/.test(z + e)) return '—';
   if (z && /[\u4e00-\u9fff]/.test(z)) return z;
   return e || z || '—';
