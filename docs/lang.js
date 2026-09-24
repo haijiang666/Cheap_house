@@ -394,7 +394,15 @@
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode(n) {
         if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-        if (n.parentElement && n.parentElement.closest("script, style, [data-i18n-live]")) return NodeFilter.FILTER_REJECT;
+        // Skip dynamic tables/cards — filterTable / renderPicks already re-render in the active lang.
+        if (
+          n.parentElement &&
+          n.parentElement.closest(
+            "script, style, [data-i18n-live], #listingsTable tbody, #picksContainer, .js-plotly-plot"
+          )
+        ) {
+          return NodeFilter.FILTER_REJECT;
+        }
         return NodeFilter.FILTER_ACCEPT;
       },
     });
@@ -493,21 +501,49 @@
   };
 
   window.setDashLang = function setDashLang(lang) {
-    window.DASH_LANG = lang === "en" ? "en" : "zh";
-    localStorage.setItem("dash-lang", window.DASH_LANG);
-    if (typeof renderPicks === "function") {
-      try { renderPicks(); } catch (_) {}
+    const next = lang === "en" ? "en" : "zh";
+    if (window.DASH_LANG === next) {
+      paintSwitch();
+      return;
     }
-    if (typeof populateDistricts === "function" && typeof DATA !== "undefined" && DATA.length) {
-      try { populateDistricts(); } catch (_) {}
+    window.DASH_LANG = next;
+    try {
+      localStorage.setItem("dash-lang", window.DASH_LANG);
+    } catch (_) {}
+    // Paint the switch immediately so the click never feels dead while tables re-render.
+    paintSwitch();
+    const title = document.querySelector("title");
+    if (title) {
+      if (!title.dataset.zh) title.dataset.zh = title.textContent;
+      title.textContent = window.DASH_LANG === "en" ? window.t(title.dataset.zh) : title.dataset.zh;
     }
-    if (typeof filterTable === "function" && typeof DATA !== "undefined" && DATA.length) {
-      try { filterTable(); } catch (_) {}
-    }
-    window.applyPageLang();
+    const applyHeavy = () => {
+      if (typeof renderPicks === "function") {
+        try { renderPicks(); } catch (_) {}
+      }
+      if (typeof populateDistricts === "function" && typeof DATA !== "undefined" && DATA.length) {
+        try { populateDistricts(); } catch (_) {}
+      }
+      if (typeof filterTable === "function" && typeof DATA !== "undefined" && DATA.length) {
+        try { filterTable(); } catch (_) {}
+      }
+      walk(document.body);
+      translatePlotly();
+    };
+    requestAnimationFrame(() => setTimeout(applyHeavy, 0));
   };
 
   function boot() {
+    document.addEventListener(
+      "click",
+      (ev) => {
+        const btn = ev.target && ev.target.closest && ev.target.closest(".lang-switch button[data-set-lang]");
+        if (!btn) return;
+        ev.preventDefault();
+        window.setDashLang(btn.dataset.setLang);
+      },
+      true
+    );
     window.applyPageLang();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

@@ -18,8 +18,9 @@ html { -webkit-text-size-adjust: 100%; }
 body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: env(safe-area-inset-bottom, 0); }
 .header { position: relative; background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%); color: #fff; padding: max(28px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) 20px max(32px, env(safe-area-inset-left)); }
 .header h1 { font-size: 1.5rem; font-weight: 700; padding-right: 168px; }
-.lang-switch { position: absolute; top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); display: inline-flex; padding: 4px; gap: 2px; border-radius: 999px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.55); box-shadow: 0 6px 18px rgba(0,0,0,.22); z-index: 20; }
-.lang-switch button { border: 0; background: transparent; color: #fff; font-weight: 800; font-size: .92rem; letter-spacing: .02em; padding: 8px 16px; min-width: 68px; border-radius: 999px; cursor: pointer; }
+/* Fixed above loading overlay (z=9999) and sticky nav so clicks always work. */
+.lang-switch { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); display: inline-flex; padding: 4px; gap: 2px; border-radius: 999px; background: rgba(6, 78, 59, .92); border: 1px solid rgba(255,255,255,.55); box-shadow: 0 6px 18px rgba(0,0,0,.28); z-index: 10001; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.lang-switch button { border: 0; background: transparent; color: #fff; font-weight: 800; font-size: .92rem; letter-spacing: .02em; padding: 8px 16px; min-width: 68px; min-height: 40px; border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .lang-switch button.active { background: #fff; color: #064e3b; }
 .meta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .meta-chip { font-size: .72rem; background: rgba(255,255,255,.14); padding: 4px 10px; border-radius: 999px; white-space: nowrap; line-height: 1.3; }
