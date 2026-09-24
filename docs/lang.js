@@ -542,6 +542,7 @@
         const btn = ev.target && ev.target.closest && ev.target.closest(".lang-switch button[data-set-lang]");
         if (!btn) return;
         ev.preventDefault();
+        ev.stopPropagation();
         window.setDashLang(btn.dataset.setLang);
       },
       true

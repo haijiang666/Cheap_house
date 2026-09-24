@@ -31,10 +31,10 @@ body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSys
 
 /* Header */
 .header { position: relative; background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%); color: #fff; padding: max(28px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) 20px max(32px, env(safe-area-inset-left)); }
-.header h1 { font-size: 1.6rem; font-weight: 700; padding-right: 168px; }
-/* Fixed above loading overlay (z=9999) and sticky nav so clicks always work. */
-.lang-switch { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); display: inline-flex; padding: 4px; gap: 2px; border-radius: 999px; background: rgba(30, 27, 75, .92); border: 1px solid rgba(255,255,255,.55); box-shadow: 0 6px 18px rgba(0,0,0,.28); z-index: 10001; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.lang-switch button { border: 0; background: transparent; color: #fff; font-weight: 800; font-size: .92rem; letter-spacing: .02em; padding: 8px 16px; min-width: 68px; min-height: 40px; border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.header h1 { font-size: 1.6rem; font-weight: 700; padding-right: 24px; pointer-events: none; }
+/* Language switch lives in sticky nav so title never steals clicks */
+.lang-switch { display: inline-flex; margin-left: auto; flex-shrink: 0; padding: 3px; gap: 2px; border-radius: 999px; background: #1e1b4b; border: 1px solid #4338ca; box-shadow: 0 2px 8px rgba(0,0,0,.12); z-index: 101; }
+.lang-switch button { border: 0; background: transparent; color: #e0e7ff; font-weight: 800; font-size: .85rem; letter-spacing: .02em; padding: 8px 14px; min-width: 56px; min-height: 40px; border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; position: relative; z-index: 1; }
 .lang-switch button.active { background: #fff; color: #312e81; }
 .header .meta { opacity: .85; font-size: .85rem; margin-top: 4px; }
 .header-stats { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
@@ -48,6 +48,9 @@ body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, BlinkMacSys
 .nav button { padding: 8px 18px; min-height: 44px; flex-shrink: 0; border: none; background: transparent; color: var(--muted); font-size: .9rem; font-weight: 500; cursor: pointer; border-radius: 8px; transition: .15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .nav button:hover { background: #f1f5f9; color: var(--text); }
 .nav button.active { background: var(--accent); color: #fff; }
+.nav .lang-switch button { color: #e0e7ff; font-weight: 800; font-size: .85rem; border-radius: 999px; background: transparent; }
+.nav .lang-switch button:hover { background: rgba(255,255,255,.12); color: #fff; }
+.nav .lang-switch button.active { background: #fff; color: #312e81; }
 
 /* Sections */
 .container { max-width: min(1920px, 96vw); margin: 0 auto; padding: 24px 16px; }
@@ -207,10 +210,6 @@ tr.hidden { display: none; }
 <div id="loading">正在加载物业数据…</div>
 
 <div class="header">
-  <div class="lang-switch" role="group" aria-label="Language">
-    <button type="button" data-set-lang="zh" onclick="setDashLang('zh')">中文</button>
-    <button type="button" data-set-lang="en" onclick="setDashLang('en')">EN</button>
-  </div>
   <h1>Cheap_house — 香港物业投资报告</h1>
   <div class="meta-chips">
     <span class="meta-chip">2026-09-24 00:55</span>
@@ -241,6 +240,10 @@ tr.hidden { display: none; }
   <button onclick="showTab('listings', this)">全部楼盘</button>
   <button onclick="showTab('districts', this)">分区分析</button>
   <button onclick="showTab('charts', this)">图表</button>
+  <div class="lang-switch" role="group" aria-label="Language">
+    <button type="button" data-set-lang="zh" onclick="setDashLang('zh')">中文</button>
+    <button type="button" data-set-lang="en" onclick="setDashLang('en')">EN</button>
+  </div>
 </nav>
 
 <!-- OVERVIEW -->
@@ -597,7 +600,7 @@ tr.hidden { display: none; }
 </div>
 </div>
 
-<script src="lang.js?v=20260924c"></script>
+<script src="lang.js?v=20260924d"></script>
 <script>
 let DATA = [];
 let PICKS = [];
