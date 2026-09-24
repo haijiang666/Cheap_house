@@ -629,7 +629,7 @@ function renderPicks() {
   container.innerHTML = picks.map((p, i) => `
     <div class="pick-card">
       <div class="rank">#${i + 1}</div>
-      <div class="estate">${escapeHtml(estateLabel(p.estate_display || p.estate_zh || p.estate, p.estate_en || ''))}</div>
+      <div class="estate">${escapeHtml(estateLabel(p.estate_zh || p.estate, p.estate_en || p.estate_display || p.estate || ''))}</div>
       <div class="loc">${escapeHtml(window.DASH_LANG === 'en' ? (p.district || '') : districtLabel(p.district_zh, p.district_display || p.district))} · ${escapeHtml(window.DASH_LANG === 'en' ? (p.region || '') : (p.region_zh || p.region))} <span class="grade-badge grade-${escapeHtml(p.grade)}">${escapeHtml(p.grade)}</span></div>
       <div class="metrics">
         <div><div class="m-label">售价</div><div class="m-val">${escapeHtml(p.price_fmt)}</div></div>
@@ -783,8 +783,12 @@ function ageLabel(age, uncertain) {
 }
 
 function estateLabel(zh, en) {
-  const z = (zh || '').trim();
-  const e = (en || '').trim();
+  const scrub = (s) => {
+    const t = (s || '').trim();
+    return /^(nan|none|null|<na>)$/i.test(t) ? '' : t;
+  };
+  let z = scrub(zh);
+  let e = scrub(en);
   const STREET_EN = {
     '薄扶林道': 'Pok Fu Lam Road', '百老匯街': 'Broadway', '百老汇街': 'Broadway',
     '蘭秀道': 'Lansdowne Road', '兰秀道': 'Lansdowne Road',
@@ -852,15 +856,16 @@ function estateLabel(zh, en) {
   };
   if (window.DASH_LANG === 'en') {
     if (e && !isWeak(e) && !/[\u4e00-\u9fff]/.test(e)) return e;
-    const fromZ = /[\u4e00-\u9fff]/.test(z) ? expand(z) : '';
+    const fromZ = /[\u4e00-\u9fff]/.test(z) ? expand(z) : (!/[\u4e00-\u9fff]/.test(z) ? z : '');
     if (fromZ && !isWeak(fromZ) && !/[\u4e00-\u9fff]/.test(fromZ)) return fromZ;
     const fromE = expand(e);
     if (fromE && !isWeak(fromE) && !/[\u4e00-\u9fff]/.test(fromE)) return fromE;
     return '—';
   }
-  // Chinese UI: hide portal junk brands; prefer Chinese estate name.
+  // Chinese UI: prefer CJK estate name; never treat Latin display as Chinese.
   if (/资讯平台|資訊平台|信息平台|搵楼|搵樓/.test(z + e)) return '—';
   if (z && /[\u4e00-\u9fff]/.test(z)) return z;
+  if (e && /[\u4e00-\u9fff]/.test(e)) return e;
   return e || z || '—';
 }
 
@@ -887,7 +892,7 @@ function renderTable(rows, appendFrom) {
   const tbody = document.getElementById('tableBody');
   const html = slice.map(r => `<tr data-region="${escapeHtml(r.region)}" data-grade="${escapeHtml(r.investment_grade)}">
     <td class="col-center"><span class="rank-num">${r.rank}</span></td>
-    <td class="col-estate">${escapeHtml(estateLabel(r.estate_display || r.estate_zh || r.estate, r.estate_en || ''))}</td>
+    <td class="col-estate">${escapeHtml(estateLabel(r.estate_zh || r.estate, r.estate_en || r.estate_display || r.estate || ''))}</td>
     <td class="col-center">${escapeHtml(window.t ? window.t(r.housing_type || '住宅') : (r.housing_type || '住宅'))}</td>
     <td>${escapeHtml(window.DASH_LANG === 'en' ? (r.district || '') : districtLabel(r.district_zh, r.district_display || r.district))}</td>
     <td class="col-center">${escapeHtml(window.DASH_LANG === 'en' ? (r.region || '') : (r.region_zh || r.region))}</td>

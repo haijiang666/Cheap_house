@@ -620,8 +620,12 @@ function ageLabel(age, uncertain) {
   return Math.round(age) + unit + (uncertain ? '*' : '');
 }
 function estateLabel(zh, en) {
-  const z = (zh || '').trim();
-  const e = (en || '').trim();
+  const scrub = (s) => {
+    const t = (s || '').trim();
+    return /^(nan|none|null|<na>)$/i.test(t) ? '' : t;
+  };
+  let z = scrub(zh);
+  let e = scrub(en);
   const STREET_EN = {
     '薄扶林道': 'Pok Fu Lam Road', '百老匯街': 'Broadway', '百老汇街': 'Broadway',
     '蘭秀道': 'Lansdowne Road', '兰秀道': 'Lansdowne Road',
@@ -689,15 +693,16 @@ function estateLabel(zh, en) {
   };
   if (window.DASH_LANG === 'en') {
     if (e && !isWeak(e) && !/[\u4e00-\u9fff]/.test(e)) return e;
-    const fromZ = /[\u4e00-\u9fff]/.test(z) ? expand(z) : '';
+    const fromZ = /[\u4e00-\u9fff]/.test(z) ? expand(z) : (!/[\u4e00-\u9fff]/.test(z) ? z : '');
     if (fromZ && !isWeak(fromZ) && !/[\u4e00-\u9fff]/.test(fromZ)) return fromZ;
     const fromE = expand(e);
     if (fromE && !isWeak(fromE) && !/[\u4e00-\u9fff]/.test(fromE)) return fromE;
     return '—';
   }
-  // Chinese UI: hide portal junk brands; prefer Chinese estate name.
+  // Chinese UI: prefer CJK estate name; never treat Latin display as Chinese.
   if (/资讯平台|資訊平台|信息平台|搵楼|搵樓/.test(z + e)) return '—';
   if (z && /[\u4e00-\u9fff]/.test(z)) return z;
+  if (e && /[\u4e00-\u9fff]/.test(e)) return e;
   return e || z || '—';
 }
 let PICKS = [];
@@ -708,7 +713,7 @@ function renderPicks() {
   container.innerHTML = PICKS.slice(0, 5).map((p, i) => `
     <div class="pick-card">
       <div class="rank">#${i + 1}</div>
-      <div style="font-weight:700">${esc(estateLabel(p.estate_display || p.estate_zh || p.estate, p.estate_en || ''))}</div>
+      <div style="font-weight:700">${esc(estateLabel(p.estate_zh || p.estate, p.estate_en || p.estate_display || p.estate || ''))}</div>
       <div style="color:var(--muted);font-size:.8rem;margin:4px 0 10px">${esc(window.DASH_LANG === 'en' ? (p.district || p.district_display || '') : (p.district_display || p.district || ''))} · ${esc(window.DASH_LANG === 'en' ? (p.region || p.region_zh || '') : (p.region_zh || p.region || ''))} <span class="grade-badge grade-${esc(p.grade)}">${esc(p.grade)}</span></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.82rem">
         <div><span style="color:var(--muted);font-size:.7rem">${window.DASH_LANG === 'en' ? 'Rent' : '月租'}</span><br><strong>${esc(p.rent_fmt || p.rent || '')}</strong></div>
@@ -789,7 +794,7 @@ function filterTable() {
     return (REGION_ORDER[a.region] ?? 99) - (REGION_ORDER[b.region] ?? 99);
   });
   document.getElementById('tableBody').innerHTML = rows.slice(0, 500).map(r => `<tr>
-    <td>${r.rank}</td><td>${esc(estateLabel(r.estate_display||r.estate_zh||r.estate, r.estate_en||''))}</td><td>${esc(window.DASH_LANG === 'en' ? (r.district || '') : (r.district_display||r.district))}</td>
+    <td>${r.rank}</td><td>${esc(estateLabel(r.estate_zh||r.estate, r.estate_en||r.estate_display||r.estate||''))}</td><td>${esc(window.DASH_LANG === 'en' ? (r.district || '') : (r.district_display||r.district))}</td>
     <td>${esc(window.DASH_LANG === 'en' ? (r.region || '') : (r.region_zh||r.region))}</td><td>${esc(r.rent_fmt)}</td><td>${esc(r.rpsf_fmt||'')}</td>
     <td>${r.sqft||'—'}</td><td>${r.bedrooms??'—'}</td><td>${esc(r.total_fmt||'')}</td>
     <td style="color:${(r.value_vs_district||0)>0?'#059669':'#dc2626'}">${pct(r.value_vs_district)}</td>

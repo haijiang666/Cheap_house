@@ -1,4 +1,4 @@
-/* Chinese / English UI switch. Listing names stay as scraped. */
+/* Chinese / English UI switch. Estate names use estate_zh (CN) / estate_en (EN). */
 (function () {
   const DICT = {
     "Cheap_house — 香港物业投资报告": "Cheap_house — Hong Kong Property Investment",
