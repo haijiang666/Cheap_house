@@ -510,13 +510,15 @@
     try {
       localStorage.setItem("dash-lang", window.DASH_LANG);
     } catch (_) {}
-    // Paint the switch immediately so the click never feels dead while tables re-render.
+    // Paint chrome immediately so the click never feels dead while tables re-render.
     paintSwitch();
     const title = document.querySelector("title");
     if (title) {
       if (!title.dataset.zh) title.dataset.zh = title.textContent;
       title.textContent = window.DASH_LANG === "en" ? window.t(title.dataset.zh) : title.dataset.zh;
     }
+    walk(document.querySelector(".header"));
+    walk(document.querySelector(".nav"));
     const applyHeavy = () => {
       if (typeof renderPicks === "function") {
         try { renderPicks(); } catch (_) {}
