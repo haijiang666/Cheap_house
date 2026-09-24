@@ -4,6 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#065f46">
+<script>
+/* Language switch bootstrap — works even if lang.js?v=20260924e / localStorage fails */
+(function () {
+  function readLang() {
+    try {
+      if (localStorage.getItem("dash-lang") === "en") return "en";
+    } catch (e) {}
+    return "zh";
+  }
+  window.DASH_LANG = readLang();
+  window.setDashLang = function setDashLang(lang) {
+    var next = lang === "en" ? "en" : "zh";
+    window.DASH_LANG = next;
+    try { localStorage.setItem("dash-lang", next); } catch (e) {}
+    document.documentElement.lang = next === "en" ? "en" : "zh-CN";
+    document.querySelectorAll(".lang-switch button").forEach(function (btn) {
+      var v = btn.getAttribute("data-lang") || btn.getAttribute("data-set-lang");
+      btn.classList.toggle("active", v === next);
+    });
+    if (typeof window.__dashApplyLang === "function") {
+      try { window.__dashApplyLang(next); } catch (e) { console.error(e); }
+    }
+  };
+})();
+</script>
 <title>Cheap_house — 香港租房报告</title>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" crossorigin="anonymous"></script>
 <style>
@@ -17,11 +42,7 @@
 html { -webkit-text-size-adjust: 100%; }
 body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding-bottom: env(safe-area-inset-bottom, 0); }
 .header { position: relative; background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%); color: #fff; padding: max(28px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-right)) 20px max(32px, env(safe-area-inset-left)); }
-.header h1 { font-size: 1.5rem; font-weight: 700; padding-right: 24px; pointer-events: none; }
-/* Language switch in sticky nav */
-.lang-switch { display: inline-flex; margin-left: auto; flex-shrink: 0; padding: 3px; gap: 2px; border-radius: 999px; background: #064e3b; border: 1px solid #059669; box-shadow: 0 2px 8px rgba(0,0,0,.12); z-index: 101; }
-.lang-switch button { border: 0; background: transparent; color: #d1fae5; font-weight: 800; font-size: .85rem; letter-spacing: .02em; padding: 8px 14px; min-width: 56px; min-height: 40px; border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; position: relative; z-index: 1; }
-.lang-switch button.active { background: #fff; color: #064e3b; }
+.header h1 { font-size: 1.6rem; font-weight: 700; padding-right: 140px; }
 .meta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .meta-chip { font-size: .72rem; background: rgba(255,255,255,.14); padding: 4px 10px; border-radius: 999px; white-space: nowrap; line-height: 1.3; }
 .header-links { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: .82rem; }
@@ -36,9 +57,6 @@ body { font-family: "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
 .nav::-webkit-scrollbar { display: none; }
 .nav button { padding: 8px 16px; min-height: 44px; flex-shrink: 0; border: none; background: transparent; color: var(--muted); font-size: .88rem; cursor: pointer; border-radius: 8px; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 .nav button.active { background: var(--accent); color: #fff; }
-.nav .lang-switch button { color: #d1fae5; font-weight: 800; font-size: .85rem; border-radius: 999px; background: transparent; }
-.nav .lang-switch button:hover { background: rgba(255,255,255,.12); color: #fff; }
-.nav .lang-switch button.active { background: #fff; color: #064e3b; }
 .container { max-width: min(1920px, 96vw); margin: 0 auto; padding: 24px 16px; }
 .section { display: none; } .section.active { display: block; }
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -126,9 +144,19 @@ tr:hover td { background: #f0fdf4; }
 @media (min-width: 901px) and (max-width: 1200px) {
   .filter-row--controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+/* Always-on language switch: fixed to viewport, never inside scrolling nav / under h1 */
+.lang-switch { position: fixed; top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: rgba(6, 78, 59, .96); border: 1px solid rgba(255,255,255,.65); box-shadow: 0 8px 24px rgba(0,0,0,.35); z-index: 2147483000; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); pointer-events: auto; }
+.lang-switch button { border: 0; background: transparent; color: #fff; font-weight: 800; font-size: .9rem; letter-spacing: .02em; padding: 10px 16px; min-width: 64px; min-height: 44px; border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; pointer-events: auto; }
+.lang-switch button.active { background: #fff; color: #064e3b; }
+.header h1 { pointer-events: none; }
 </style>
 </head>
 <body>
+<div class="lang-switch" role="group" aria-label="Language">
+  <button type="button" data-lang="zh" onclick="setDashLang('zh')">中文</button>
+  <button type="button" data-lang="en" onclick="setDashLang('en')">EN</button>
+</div>
+
 <div id="loading">正在加载租盘数据…</div>
 <div class="header">
   <h1>Cheap_house — 香港租房报告</h1>
@@ -157,10 +185,6 @@ tr:hover td { background: #f0fdf4; }
   <button onclick="showTab('listings',this)">全部租盘</button>
   <button onclick="showTab('districts',this)">分区租金</button>
   <button onclick="showTab('charts',this)">图表</button>
-  <div class="lang-switch" role="group" aria-label="Language">
-    <button type="button" data-set-lang="zh" onclick="setDashLang('zh')">中文</button>
-    <button type="button" data-set-lang="en" onclick="setDashLang('en')">EN</button>
-  </div>
 </nav>
 
 <div id="overview" class="section active"><div class="container">
@@ -444,7 +468,7 @@ tr:hover td { background: #f0fdf4; }
   </div>
 </div></div>
 
-<script src="lang.js?v=20260924d"></script>
+<script src="lang.js?v=20260924e"></script>
 <script>
 const DATA_VERSION = "202609240057";
 const REGION_LABELS = { 'Hong Kong Island': '港岛', 'Kowloon': '九龙' };
@@ -701,6 +725,7 @@ function estateLabel(zh, en) {
     if (fromZ && !isWeak(fromZ) && !/[\u4e00-\u9fff]/.test(fromZ)) return fromZ;
     const fromE = expand(e);
     if (fromE && !isWeak(fromE) && !/[\u4e00-\u9fff]/.test(fromE)) return fromE;
+    if (z && /[\u4e00-\u9fff]/.test(z)) return z; // keep Chinese when EN missing
     return '—';
   }
   // Chinese UI: prefer CJK estate name; never treat Latin display as Chinese.

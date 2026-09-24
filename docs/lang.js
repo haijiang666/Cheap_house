@@ -366,7 +366,11 @@
     return raw;
   }
 
-  window.DASH_LANG = localStorage.getItem("dash-lang") === "en" ? "en" : "zh";
+  try {
+    window.DASH_LANG = localStorage.getItem("dash-lang") === "en" ? "en" : "zh";
+  } catch (_) {
+    window.DASH_LANG = window.DASH_LANG === "en" ? "en" : "zh";
+  }
 
   window.t = function t(s) {
     return tr(s);
@@ -484,12 +488,18 @@
 
   function paintSwitch() {
     document.querySelectorAll(".lang-switch button").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.setLang === window.DASH_LANG);
+      const v = btn.getAttribute("data-lang") || btn.getAttribute("data-set-lang") || btn.dataset.setLang;
+      btn.classList.toggle("active", v === window.DASH_LANG);
     });
     document.documentElement.lang = window.DASH_LANG === "en" ? "en" : "zh-CN";
     const title = document.querySelector("title");
     if (title) {
-      if (!title.dataset.zh) title.dataset.zh = title.textContent;
+      if (!title.dataset.zh) {
+        // Prefer Chinese source title; if already translated, keep previous dataset.
+        title.dataset.zh = /[\u4e00-\u9fff]/.test(title.textContent)
+          ? title.textContent
+          : (title.dataset.zh || title.textContent);
+      }
       title.textContent = window.DASH_LANG === "en" ? window.t(title.dataset.zh) : title.dataset.zh;
     }
   }
@@ -500,26 +510,21 @@
     translatePlotly();
   };
 
-  window.setDashLang = function setDashLang(lang) {
+  window.__dashApplyLang = function __dashApplyLang(lang) {
     const next = lang === "en" ? "en" : "zh";
-    if (window.DASH_LANG === next) {
-      paintSwitch();
-      return;
-    }
     window.DASH_LANG = next;
     try {
-      localStorage.setItem("dash-lang", window.DASH_LANG);
+      localStorage.setItem("dash-lang", next);
     } catch (_) {}
-    // Paint chrome immediately so the click never feels dead while tables re-render.
     paintSwitch();
-    const title = document.querySelector("title");
-    if (title) {
-      if (!title.dataset.zh) title.dataset.zh = title.textContent;
-      title.textContent = window.DASH_LANG === "en" ? window.t(title.dataset.zh) : title.dataset.zh;
-    }
+    // Translate visible chrome + page copy first (skip huge tables — they re-render below).
     walk(document.querySelector(".header"));
     walk(document.querySelector(".nav"));
-    const applyHeavy = () => {
+    document.querySelectorAll(".section").forEach((sec) => {
+      if (sec.id === "listings") return;
+      walk(sec);
+    });
+    const applyTables = () => {
       if (typeof renderPicks === "function") {
         try { renderPicks(); } catch (_) {}
       }
@@ -529,24 +534,21 @@
       if (typeof filterTable === "function" && typeof DATA !== "undefined" && DATA.length) {
         try { filterTable(); } catch (_) {}
       }
-      walk(document.body);
       translatePlotly();
     };
-    requestAnimationFrame(() => setTimeout(applyHeavy, 0));
+    requestAnimationFrame(() => setTimeout(applyTables, 0));
+  };
+
+  window.setDashLang = function setDashLang(lang) {
+    const next = lang === "en" ? "en" : "zh";
+    if (window.DASH_LANG === next) {
+      paintSwitch();
+      return;
+    }
+    window.__dashApplyLang(next);
   };
 
   function boot() {
-    document.addEventListener(
-      "click",
-      (ev) => {
-        const btn = ev.target && ev.target.closest && ev.target.closest(".lang-switch button[data-set-lang]");
-        if (!btn) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.setDashLang(btn.dataset.setLang);
-      },
-      true
-    );
     window.applyPageLang();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
